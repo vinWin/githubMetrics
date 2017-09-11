@@ -1,0 +1,17 @@
+{
+  "name": "gitapi",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "async": "^2.5.0",
+    "bootstrap-table": "^1.11.2",
+    "express": "^4.15.4",
+    "request": "^2.81.0"
+  }
+}
