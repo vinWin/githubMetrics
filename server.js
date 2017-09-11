@@ -121,7 +121,8 @@ function getRepos() {
 
 app.get('/githubPayload', function (req, res) {
     var name = req.query.name;
-    options['uri'] = 'https://api.github.com/users/' + name + '/repos?client_id=da445e086bae0795c722&client_secret=793fe2e727d8f6a7b2517f5870c8a1e2757e16a7';
+    var url = 'https://api.github.com/users/' + name + '/repos?client_id='+process.env.GIT_CLIENT_ID+'&client_secret='+process.env.GIT_CLIENT_SECRET;
+    options['uri'] = url;
     getRepos()
         .then(function (data) {
             var min = Math.min(15, data.length);
