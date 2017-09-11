@@ -11,6 +11,7 @@
   "dependencies": {
     "async": "^2.5.0",
     "bootstrap-table": "^1.11.2",
+    "dotenv": "^4.0.0",
     "express": "^4.15.4",
     "request": "^2.81.0"
   }

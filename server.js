@@ -4,6 +4,8 @@ var express = require('express'),
 var request = require('request');
 var path = require('path');
 app.use(express.static(path.join(__dirname, 'public')));
+var fs = require("fs");
+require('dotenv').config();
 
 app.listen(port);
 
@@ -13,7 +15,6 @@ var options = {
     uri: '',
     method: 'GET',
     headers: {'user-agent': 'node.js'},
-    Access_token: '762351cb07164a4d50b1b6ecc093c6ea69e1dfcd'
 };
 
 var userInfo = {};
@@ -22,9 +23,8 @@ var gitObj = {};
 var repos = [];
 
 function getRepoCommitCount(repoName) {
-    options['uri'] = 'https://api.github.com/repos/' + repoName + '/commits/master';
-    console.log(repoName);
-    console.log(options['uri']);
+    var url = 'https://api.github.com/repos/' + repoName + '/commits/master?client_id='+process.env.GIT_CLIENT_ID+'&client_secret='+process.env.GIT_CLIENT_SECRET;
+    options['uri'] = url;
     return new Promise(function (resolve, reject) {
         request(options, function (error, response, body) {
             if (error) {
@@ -55,11 +55,11 @@ function getRepoCommitCount(repoName) {
     });
 }
 
-function getgitObj(){
+function getgitObj() {
     Object.assign(gitObj, userInfo);
     var repos = [];
-    for(key in repoInfo){
-       repos.push(repoInfo[key]);
+    for (key in repoInfo) {
+        repos.push(repoInfo[key]);
     }
     gitObj.repos = repos;
 }
@@ -81,7 +81,8 @@ function getFollowersCount() {
 }
 
 function getPullRequestCount(repoName) {
-    options['uri'] = 'https://api.github.com/repos/' + repoName + '/pulls';
+    var url = 'https://api.github.com/repos/' + repoName + '/pulls?client_id='+process.env.GIT_CLIENT_ID+'&client_secret='+process.env.GIT_CLIENT_SECRET;
+    options['uri'] = url;
     return new Promise(function (resolve, reject) {
         request(options, function (error, response, body) {
             if (error) {
@@ -107,14 +108,11 @@ function getRepos() {
             }
             if (response && response.statusCode) {
                 var r = JSON.parse(body);
+                var results = [];
                 for (var key in r) {
-                    var count = 0;
-                    if (count < 4) {
-                        repos.push(r[key]['full_name']);
-                        count++;
-                    }
+                    results.push(r[key]['full_name']);
                 }
-                resolve(true);
+                resolve(results);
             }
         });
     });
@@ -123,17 +121,28 @@ function getRepos() {
 
 app.get('/githubPayload', function (req, res) {
     var name = req.query.name;
-    options['uri'] = 'https://api.github.com/users/' + name + '/repos';
+    options['uri'] = 'https://api.github.com/users/' + name + '/repos?client_id=da445e086bae0795c722&client_secret=793fe2e727d8f6a7b2517f5870c8a1e2757e16a7';
     getRepos()
-        .then(function () {
+        .then(function (data) {
+            var min = Math.min(15, data.length);
+            for (var i = 0; i < min; i++) {
+                repos.push(data[i]);
+            }
             return Promise.all(repos.map(getRepoCommitCount));
         }).then(function () {
         return Promise.all(repos.map(getPullRequestCount));
-        })
+    })
         .then(function () {
             return getFollowersCount();
         }).then(function () {
         getgitObj();
+        /********* checking the final object
+        // var x = JSON.stringify(gitObj);
+        // fs.writeFile("temp.json", x, 'utf8', function (err) {
+        //     if (err) {
+        //         return console.log(err);
+        //     }
+        // });*********/
         res.send(gitObj.repos);
     })
         .catch(function (error) {
